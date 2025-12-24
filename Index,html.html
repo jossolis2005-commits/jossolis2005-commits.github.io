@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registros de Alumnos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #ecf0f1;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    form, .login, .accionesGlobales, .accionesSeleccion {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      margin: 20px auto;
+      box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: yellow;
+      color: black;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #34495e;
+      color: white;
+    }
+    .acciones button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 2px;
+    }
+    .acciones .editar {
+      background: #2980b9;
+    }
+    .seleccion {
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login" id="loginDiv">
+  <h2>Iniciar Sesión</h2>
+  <input type="text" id="usuario" placeholder="Usuario">
+  <input type="password" id="clave" placeholder="Contraseña">
+  <button onclick="login()">Entrar</button>
+</div>
+
+<div id="contenido" style="display:none;">
+  <h1>Registro de Alumnos</h1>
+
+  <form id="formAlumno">
+    <input type="text" id="gradoGrupo" placeholder="Grado y Grupo (ej. 6A)" required>
+    <input type="text" id="nombre" placeholder="Nombre(s)" required>
+    <input type="text" id="paterno" placeholder="Apellido Paterno" required>
+    <input type="text" id="materno" placeholder="Apellido Materno" required>
+    <textarea id="fortalezas" placeholder="Fortalezas"></textarea>
+    <textarea id="oportunidades" placeholder="Oportunidades"></textarea>
+    <textarea id="areas" placeholder="Áreas a mejorar"></textarea>
+    <textarea id="comportamiento" placeholder="Comportamiento"></textarea>
+    <button type="submit">Agregar Alumno</button>
+  </form>
+
+  <div class="accionesGlobales">
+    <h3>Acciones Generales</h3>
+
+    <input type="text" id="buscar" placeholder="Buscar por nombre, apellido o grupo">
+    <button onclick="buscarAlumno()">Buscar</button>
+
+    <input type="text" id="grupoCambiar" placeholder="Grupo a modificar (ej. 6A)">
+    <input type="text" id="nuevoGrupo" placeholder="Nuevo Grupo (ej. 6B)">
+    <button onclick="cambiarGrupo()">Cambiar Grupo</button>
+
+    <input type="text" id="grupoEliminar" placeholder="Grupo a eliminar">
+    <button onclick="eliminarGrupo()">Eliminar Grupo</button>
+
+    <!-- MAESTRO POR GRUPO -->
+    <h4>Maestro asignado por grupo</h4>
+    <input type="text" id="grupoMaestro" placeholder="Grupo (ej. 6A)">
+    <input type="text" id="nombreMaestro" placeholder="Nombre del maestro">
+    <button onclick="guardarMaestro()">Guardar / Cambiar Maestro</button>
+
+    <h4>Cambiar Usuario y Contraseña</h4>
+    <input type="text" id="nuevoUsuario" placeholder="Nuevo Usuario">
+    <input type="password" id="nuevaClave" placeholder="Nueva Contraseña">
+    <button onclick="cambiarCredenciales()">Guardar Cambios</button>
+  </div>
+
+  <h2 style="text-align:center;">Lista de Alumnos Registrados</h2>
+  <div id="lista"></div>
+
+  <div class="accionesSeleccion">
+    <h3>Cambios por Selección</h3>
+    <input type="text" id="nuevoGrupoSeleccion" placeholder="Nuevo grupo para seleccionados (ej. 6B)">
+    <button onclick="cambiarGrupoSeleccionados()">Cambiar Grupo Seleccionados</button>
+    <button onclick="eliminarSeleccionados()">Eliminar Seleccionados</button>
+  </div>
+</div>
+
+<script>
+/* CREDENCIALES */
+if (!localStorage.getItem("usuario")) {
+  localStorage.setItem("usuario", "oct2025");
+  localStorage.setItem("clave", "Alumnos2025");
+}
+
+function login() {
+  if (usuario.value === localStorage.getItem("usuario") &&
+      clave.value === localStorage.getItem("clave")) {
+    loginDiv.style.display = "none";
+    contenido.style.display = "block";
+    mostrarAlumnos();
+  } else {
+    alert("Usuario o contraseña incorrectos");
+  }
+}
+
+/* ALUMNOS */
+formAlumno.addEventListener("submit", e => {
+  e.preventDefault();
+  let alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  let id = alumnos.length ? alumnos[alumnos.length - 1].id + 1 : 1;
+
+  alumnos.push({
+    id,
+    gradoGrupo: gradoGrupo.value,
+    nombre: nombre.value,
+    paterno: paterno.value,
+    materno: materno.value,
+    fortalezas: fortalezas.value,
+    oportunidades: oportunidades.value,
+    areas: areas.value,
+    comportamiento: comportamiento.value
+  });
+
+  localStorage.setItem("alumnos", JSON.stringify(alumnos));
+  formAlumno.reset();
+  mostrarAlumnos();
+});
+
+/* MOSTRAR */
+function mostrarAlumnos(filtro="") {
+  let alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  let maestros = JSON.parse(localStorage.getItem("maestros")) || {};
+
+  if (filtro) {
+    alumnos = alumnos.filter(a =>
+      a.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
+      a.paterno.toLowerCase().includes(filtro.toLowerCase()) ||
+      a.materno.toLowerCase().includes(filtro.toLowerCase()) ||
+      a.gradoGrupo.toLowerCase().includes(filtro.toLowerCase())
+    );
+  }
+
+  const grupos = {};
+  alumnos.forEach(a => {
+    if (!grupos[a.gradoGrupo]) grupos[a.gradoGrupo] = [];
+    grupos[a.gradoGrupo].push(a);
+  });
+
+  lista.innerHTML = "";
+
+  for (let grupo in grupos) {
+    let maestro = maestros[grupo] || "No asignado";
+
+    let html = `
+      <h3>Grupo ${grupo} – Maestro: ${maestro}</h3>
+      <table>
+        <tr>
+          <th>Seleccionar</th>
+          <th>No.</th>
+          <th>Nombre</th>
+          <th>Paterno</th>
+          <th>Materno</th>
+          <th>Acciones</th>
+        </tr>
+    `;
+
+    grupos[grupo].forEach(a => {
+      html += `
+        <tr>
+          <td><input type="checkbox" class="seleccion" value="${a.id}"></td>
+          <td>${a.id}</td>
+          <td>${a.nombre}</td>
+          <td>${a.paterno}</td>
+          <td>${a.materno}</td>
+          <td class="acciones">
+            <button onclick="eliminar(${a.id})">Eliminar</button>
+            <button class="editar" onclick="editarAlumno(${a.id})">Editar</button>
+          </td>
+        </tr>`;
+    });
+
+    html += "</table>";
+    lista.innerHTML += html;
+  }
+}
+
+/* MAESTRO */
+function guardarMaestro() {
+  let maestros = JSON.parse(localStorage.getItem("maestros")) || {};
+  maestros[grupoMaestro.value.toUpperCase()] = nombreMaestro.value;
+  localStorage.setItem("maestros", JSON.stringify(maestros));
+  mostrarAlumnos();
+}
+
+/* CAMBIAR GRUPO + MAESTRO AUTOMÁTICO */
+function cambiarGrupo() {
+  let alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  let maestros = JSON.parse(localStorage.getItem("maestros")) || {};
+
+  alumnos.forEach(a => {
+    if (a.gradoGrupo.toLowerCase() === grupoCambiar.value.toLowerCase()) {
+      a.gradoGrupo = nuevoGrupo.value;
+    }
+  });
+
+  if (maestros[grupoCambiar.value]) {
+    maestros[nuevoGrupo.value] = maestros[grupoCambiar.value];
+    delete maestros[grupoCambiar.value];
+  }
+
+  localStorage.setItem("alumnos", JSON.stringify(alumnos));
+  localStorage.setItem("maestros", JSON.stringify(maestros));
+  mostrarAlumnos();
+}
+
+/* BÁSICAS */
+function eliminar(id) {
+  let alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  alumnos = alumnos.filter(a => a.id !== id);
+  localStorage.setItem("alumnos", JSON.stringify(alumnos));
+  mostrarAlumnos();
+}
+
+function eliminarGrupo() {
+  let alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  let maestros = JSON.parse(localStorage.getItem("maestros")) || {};
+
+  alumnos = alumnos.filter(a => a.gradoGrupo !== grupoEliminar.value);
+  delete maestros[grupoEliminar.value];
+
+  localStorage.setItem("alumnos", JSON.stringify(alumnos));
+  localStorage.setItem("maestros", JSON.stringify(maestros));
+  mostrarAlumnos();
+}
+
+function buscarAlumno() {
+  mostrarAlumnos(buscar.value);
+}
+
+function cambiarCredenciales() {
+  if (nuevoUsuario.value && nuevaClave.value) {
+    localStorage.setItem("usuario", nuevoUsuario.value);
+    localStorage.setItem("clave", nuevaClave.value);
+    alert("Credenciales actualizadas");
+  }
+}
+</script>
+
+</body>
+</html>
