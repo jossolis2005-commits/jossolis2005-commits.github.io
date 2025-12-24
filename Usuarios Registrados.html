@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usuarios Registrados</title>
+<style>
+body { font-family: Arial; margin:0; padding:0; background:#ccc;}
+header {background:#000; color:white; padding:1em; text-align:center;}
+nav {background:#444; color:white; padding:10px 0; text-align:center;}
+nav ul {list-style:none; margin:0; padding:0;}
+nav ul li {display:inline; margin:0 15px;}
+nav ul li a {color:white; text-decoration:none; transition:0.3s;}
+nav ul li a:hover {color:yellow;}
+section {padding:20px; margin:20px; background:white; border-radius:5px;}
+table {width:100%; border-collapse:collapse; margin-top:15px;}
+th, td {border:1px solid #888; padding:8px; text-align:center;}
+th {background:#444; color:white;}
+button {background:#e74c3c; border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;}
+button:hover {background:#c0392b;}
+footer {text-align:center; padding:1em; background:#000; color:white;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Usuarios Registrados</h1>
+</header>
+
+<nav>
+<ul>
+  <li><a href="Pedidos.html">Pedidos</a></li>
+  <li><a href="Precios y Stock.html">Precios y Stock</a></li>
+  <li><a href="Horario.html">Horario</a></li>
+</ul>
+</nav>
+
+<main>
+<section>
+  <h2>Lista de Usuarios</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Celular</th>
+        <th>Salón</th>
+        <th>Usuario</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-usuarios"></tbody>
+  </table>
+</section>
+</main>
+
+<footer>
+© 2025 Mexibotanas Tienda de Botanas. Todos los derechos reservados.
+</footer>
+
+<script>
+// Función para cargar usuarios desde localStorage
+function cargarUsuarios(){
+  let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+  let tabla = document.getElementById("tabla-usuarios");
+  tabla.innerHTML = "";
+  usuarios.forEach((u, index)=>{
+    tabla.innerHTML += `<tr>
+      <td>${u.nombre}</td>
+      <td>${u.celular}</td>
+      <td>${u.salon}</td>
+      <td>${u.user}</td>
+      <td><button onclick="eliminarUsuario(${index})">Eliminar</button></td>
+    </tr>`;
+  });
+}
+
+// Eliminar usuario por índice
+function eliminarUsuario(index){
+  if(confirm("¿Seguro que deseas eliminar este usuario?")){
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    usuarios.splice(index, 1);
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    cargarUsuarios();
+    alert("Usuario eliminado correctamente.");
+  }
+}
+
+// ===== Actualizar usuarios en tiempo real =====
+window.addEventListener("storage", function(event){
+  if(event.key === "usuarios"){
+    cargarUsuarios();
+  }
+});
+
+// Cargar usuarios al inicio
+cargarUsuarios();
+</script>
+
+</body>
+</html>

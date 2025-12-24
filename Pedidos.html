@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedidos Mexibotanas</title>
+<style>
+body { font-family: Arial; margin:0; padding:0; background:#ccc; }
+header { background:#000; color:white; padding:1em; text-align:center; }
+nav { background:#444; color:white; padding:10px 0; text-align:center; }
+nav ul { list-style:none; margin:0; padding:0; }
+nav ul li { display:inline; margin:0 15px; }
+nav ul li a { color:white; text-decoration:none; transition:0.3s; }
+nav ul li a:hover { color:yellow; }
+main { padding:20px; }
+section { 
+    padding:20px; 
+    margin:20px auto; 
+    background:white; 
+    border-radius:10px; 
+    max-width:1000px; 
+    box-shadow:0 2px 6px rgba(0,0,0,0.2); 
+}
+table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+th, td { border:1px solid #888; padding:10px; text-align:center; }
+th { background:#444; color:white; }
+select { padding:5px; border-radius:5px; }
+button { 
+    background:#25D366; 
+    border:none; 
+    color:white; 
+    padding:6px 12px; 
+    margin-top:6px; 
+    cursor:pointer; 
+    border-radius:5px; 
+}
+button:hover { background:#1da851; }
+#total-ventas { font-weight:bold; font-size:1.2em; color:#333; text-align:right; margin-top:10px; }
+footer { text-align:center; padding:1em; background:#000; color:white; }
+
+/* 🔔 Notificación */
+#notificacion {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #25D366;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  font-weight: bold;
+  display: none;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+#iconoCampana { font-size: 22px; animation: vibrar 0.4s infinite; }
+@keyframes vibrar {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-15deg); }
+  100% { transform: rotate(0deg); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Pedidos Mexibotanas</h1>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="Usuarios Registrados.html">Usuarios Registrados</a></li>
+    <li><a href="Precios y Stock.html">Precios y Stock</a></li>
+    <li><a href="Horario.html">Horario</a></li>
+  </ul>
+</nav>
+
+<main>
+  <section>
+    <h2>Pedidos actuales</h2>
+    <button onclick="borrarPedidos()">Borrar todos los pedidos</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Celular</th>
+          <th>Salón</th>
+          <th>Productos</th>
+          <th>Total</th>
+          <th>Fecha y hora</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-pedidos"></tbody>
+    </table>
+
+    <p id="total-ventas">Total vendido (Completados): $0.00</p>
+  </section>
+</main>
+
+<!-- 🔔 Notificación -->
+<div id="notificacion">
+  <span id="iconoCampana">🔔</span>
+  <span>Nuevo pedido recibido</span>
+</div>
+
+<!-- 🔊 Audio -->
+<audio id="sonido-notificacion" src="audio.mp3" preload="auto"></audio>
+
+<footer>
+  © 2025 Mexibotanas Tienda de Botanas. Todos los derechos reservados.
+</footer>
+
+<script>
+let audioDesbloqueado = false;
+
+// 🔹 Desbloquear audio con primer clic/tecla
+function desbloquearAudio() {
+    if(audioDesbloqueado) return;
+    const audio = document.getElementById("sonido-notificacion");
+    audio.play().then(()=>{ audio.pause(); audio.currentTime=0; audioDesbloqueado=true; }).catch(()=>{});
+    document.removeEventListener("click", desbloquearAudio);
+    document.removeEventListener("keydown", desbloquearAudio);
+}
+document.addEventListener("click", desbloquearAudio);
+document.addEventListener("keydown", desbloquearAudio);
+
+// 🔹 Mostrar notificación
+function mostrarNotificacion() {
+    const noti = document.getElementById("notificacion");
+    noti.style.display="flex";
+    setTimeout(()=>{ noti.style.display="none"; },10000);
+}
+
+// 🔹 Reproducir sonido
+function reproducirSonido() {
+    if(!audioDesbloqueado) return;
+    const audio = document.getElementById("sonido-notificacion");
+    audio.currentTime=0;
+    audio.play().catch(()=>{});
+}
+
+// 🔹 Cargar pedidos
+function cargarPedidos() {
+    let pedidos = JSON.parse(localStorage.getItem("pedidos"))||[];
+    let tabla = document.getElementById("tabla-pedidos");
+    tabla.innerHTML="";
+    let totalVendido=0;
+
+    pedidos.forEach((pedido,index)=>{
+        if(!pedido.fechaHora){
+            let ahora = new Date();
+            pedido.fechaHora = ahora.toLocaleDateString()+" "+ahora.toLocaleTimeString();
+        }
+
+        let productosHTML="<ul style='margin:0; padding:0; list-style:none;'>";
+        pedido.productos.forEach(p=>{
+            productosHTML+=`<li>${p.cantidad} x ${p.producto} ($${p.total.toFixed(2)})</li>`;
+        });
+        productosHTML+="</ul>";
+
+        if(!pedido.estado) pedido.estado="Pendiente";
+        if(pedido.estado==="Completado") totalVendido+=pedido.total;
+
+        tabla.innerHTML+=`<tr>
+          <td>${pedido.cliente}</td>
+          <td>${pedido.celular||"-"}</td>
+          <td>${pedido.salon}</td>
+          <td>${productosHTML}</td>
+          <td>$${pedido.total.toFixed(2)}</td>
+          <td>${pedido.fechaHora}</td>
+          <td>
+            <select onchange="cambiarEstado(${index}, this.value)">
+              <option value="Pendiente" ${pedido.estado==="Pendiente"?"selected":""}>Pendiente</option>
+              <option value="Cancelado" ${pedido.estado==="Cancelado"?"selected":""}>Cancelado</option>
+              <option value="Completado" ${pedido.estado==="Completado"?"selected":""}>Completado</option>
+            </select>
+          </td>
+        </tr>`;
+    });
+
+    localStorage.setItem("pedidos",JSON.stringify(pedidos));
+    document.getElementById("total-ventas").textContent="Total vendido (Completados): $"+totalVendido.toFixed(2);
+}
+
+// 🔹 Cambiar estado
+function cambiarEstado(index,nuevoEstado){
+    let pedidos=JSON.parse(localStorage.getItem("pedidos"))||[];
+    pedidos[index].estado=nuevoEstado;
+    localStorage.setItem("pedidos",JSON.stringify(pedidos));
+    cargarPedidos();
+}
+
+// 🔹 Borrar pedidos
+function borrarPedidos(){
+    let pass=prompt("Introduce la contraseña para borrar todos los pedidos:");
+    if(pass==="admin123"){
+        if(confirm("¿Estás seguro de borrar todos los pedidos?")){
+            localStorage.removeItem("pedidos");
+            localStorage.removeItem("ultimoConteoPedidos");
+            cargarPedidos();
+            alert("Pedidos borrados correctamente.");
+        }
+    } else alert("Contraseña incorrecta.");
+}
+
+// 🔹 Detectar pedidos nuevos
+function detectarNuevosPedidos(){
+    let pedidos=JSON.parse(localStorage.getItem("pedidos"))||[];
+    let conteoActual=pedidos.length;
+    let conteoAnterior=parseInt(localStorage.getItem("ultimoConteoPedidos")||conteoActual);
+
+    if(conteoActual>conteoAnterior){
+        mostrarNotificacion();
+        reproducirSonido();
+    }
+
+    localStorage.setItem("ultimoConteoPedidos",conteoActual);
+}
+
+// 🔹 Escuchar cambios en otras pestañas
+window.addEventListener("storage",function(event){
+    if(event.key==="pedidos"){
+        detectarNuevosPedidos();
+        cargarPedidos();
+    }
+});
+
+// 🔹 Inicialización
+window.onload=function(){
+    let pedidos=JSON.parse(localStorage.getItem("pedidos"))||[];
+    if(localStorage.getItem("ultimoConteoPedidos")===null){
+        localStorage.setItem("ultimoConteoPedidos",pedidos.length);
+    } else {
+        detectarNuevosPedidos();
+    }
+    cargarPedidos();
+};
+</script>
+</body>
+</html>

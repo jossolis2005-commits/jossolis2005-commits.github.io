@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sugerencias Mexibotanas</title>
+<style>
+body { font-family: Arial; margin:0; padding:0; background:#ccc;}
+header {background:#000; color:white; padding:1em; text-align:center;}
+nav {background:#444; color:white; padding:10px 0; text-align:center;}
+nav ul {list-style:none; margin:0; padding:0;}
+nav ul li {display:inline; margin:0 15px;}
+nav ul li a {color:white; text-decoration:none; transition:0.3s;}
+nav ul li a:hover {color:yellow;}
+section {padding:20px; margin:20px; background:white; border-radius:5px;}
+#form-sugerencia {padding:15px; background:#fff; border-radius:5px; margin-top:20px;}
+#form-sugerencia input, #form-sugerencia textarea {display:block; margin:8px 0; padding:6px; width:95%; border:1px solid #888; border-radius:5px;}
+#sugerencias-list {margin-top:20px; padding:10px; background:#fff; border-radius:5px;}
+.sugerencia {border:1px solid #888; padding:8px; margin-bottom:10px; border-radius:5px; background:#f4f4f4;}
+.respuesta {border-top:1px dashed #888; margin-top:5px; padding-top:5px; color:#333;}
+.responder-btn, .borrar-btn {margin-top:5px; cursor:pointer; padding:3px 6px; border-radius:3px; border:none;}
+.responder-btn {background:#25D366; color:white;}
+.responder-btn:hover {background:#1da851;}
+.borrar-btn {background:#e74c3c; color:white;}
+.borrar-btn:hover {background:#c0392b;}
+.fecha {font-size:12px; color:#555; margin-left:5px;}
+footer {text-align:center; padding:1em; background:#000; color:white;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sugerencias Mexibotanas</h1>
+</header>
+
+<nav>
+<ul>
+<li><a href="Mexibotanas.html">Menú</a></li>
+<li><a href="Sugerencias.html">Sugerencias</a></li>
+</ul>
+</nav>
+
+<main>
+<section>
+  <h2>Deja tus comentarios o sugerencias</h2>
+
+  <div id="form-sugerencia">
+    <form id="sugerenciaForm" onsubmit="guardarSugerencia(event)">
+      <input type="text" id="nombre" placeholder="Tu nombre" required>
+      <textarea id="comentario" placeholder="Escribe tu sugerencia o comentario aquí..." rows="5" required></textarea>
+      <button type="submit">Enviar sugerencia</button>
+    </form>
+  </div>
+
+  <div id="sugerencias-list">
+    <h3>Sugerencias anteriores</h3>
+  </div>
+</section>
+</main>
+
+<footer>
+© 2025 Mexibotanas Tienda de Botanas. Todos los derechos reservados.
+</footer>
+
+<script>
+const adminPassword = "admin123";
+
+function cargarSugerencias(){
+  let sugerencias = JSON.parse(localStorage.getItem("sugerencias")) || [];
+  let lista = document.getElementById("sugerencias-list");
+  lista.innerHTML = '<h3>Sugerencias anteriores</h3>';
+
+  sugerencias.forEach((item, index) => {
+    let div = document.createElement("div");
+    div.className = "sugerencia";
+
+    let fechaComentario = new Date(item.fecha).toLocaleString();
+    let fechaRespuesta = item.fechaRespuesta ? new Date(item.fechaRespuesta).toLocaleString() : "";
+
+    div.innerHTML = `
+      <strong>${item.nombre}:</strong> <span class="fecha">(${fechaComentario})</span>
+      <p>${item.comentario}</p>
+      ${item.respuesta ? `<div class="respuesta"><strong>Respuesta:</strong> <span class="fecha">(${fechaRespuesta})</span> ${item.respuesta}</div>` : ""}
+      <button class="responder-btn" onclick="responder(${index})">Responder</button>
+      <button class="borrar-btn" onclick="borrarSugerencia(${index})">Borrar</button>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+function guardarSugerencia(e){
+  e.preventDefault();
+  let nombre = document.getElementById("nombre").value.trim();
+  let comentario = document.getElementById("comentario").value.trim();
+  if(!nombre || !comentario){
+    alert("Todos los campos son obligatorios.");
+    return;
+  }
+  let sugerencias = JSON.parse(localStorage.getItem("sugerencias")) || [];
+  sugerencias.push({nombre, comentario, fecha: new Date(), respuesta:"", fechaRespuesta: null});
+  localStorage.setItem("sugerencias", JSON.stringify(sugerencias));
+  document.getElementById("sugerenciaForm").reset();
+  cargarSugerencias();
+}
+
+function responder(index){
+  let respuesta = prompt("Escribe tu respuesta:");
+  if(respuesta !== null){
+    let sugerencias = JSON.parse(localStorage.getItem("sugerencias")) || [];
+    sugerencias[index].respuesta = respuesta.trim();
+    sugerencias[index].fechaRespuesta = new Date();
+    localStorage.setItem("sugerencias", JSON.stringify(sugerencias));
+    cargarSugerencias();
+  }
+}
+
+function borrarSugerencia(index){
+  let pass = prompt("Introduce la contraseña para borrar este comentario:");
+  if(pass === adminPassword){
+    let sugerencias = JSON.parse(localStorage.getItem("sugerencias")) || [];
+    sugerencias.splice(index, 1);
+    localStorage.setItem("sugerencias", JSON.stringify(sugerencias));
+    cargarSugerencias();
+  } else {
+    alert("Contraseña incorrecta. No se puede borrar el comentario.");
+  }
+}
+
+window.onload = cargarSugerencias;
+</script>
+
+</body>
+</html>

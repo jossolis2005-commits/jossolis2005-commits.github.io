@@ -1,0 +1,147 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Precios y Stock</title>
+<style>
+body { font-family: Arial; margin:0; padding:0; background:#ccc;}
+header {background:#000; color:white; padding:1em; text-align:center;}
+nav {background:#444; color:white; padding:10px 0; text-align:center;}
+nav ul {list-style:none; margin:0; padding:0;}
+nav ul li {display:inline; margin:0 15px;}
+nav ul li a {color:white; text-decoration:none; transition:0.3s;}
+nav ul li a:hover {color:yellow;}
+section {padding:20px; margin:20px; background:white; border-radius:5px;}
+.producto {display:inline-block; width:180px; margin:10px; padding:10px; background:#f4f4f4; border-radius:5px; text-align:center;}
+.producto img {width:120px; height:120px; object-fit:cover; border-radius:5px;}
+button {background:#25D366; border:none; color:white; padding:6px 12px; margin-top:6px; cursor:pointer; border-radius:5px;}
+button:hover {background:#1da851;}
+input[type=number], input[type=text], input[type=url] {width:100px; text-align:center; margin-top:5px;}
+footer {text-align:center; padding:1em; background:#000; color:white;}
+#form-agregar {margin-top:20px; padding:10px; background:#eef; border-radius:5px;}
+#form-agregar input {margin:5px;}
+.btn-borrar {background:#e74c3c;}
+.btn-borrar:hover {background:#c0392b;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Precios y Stock</h1>
+</header>
+
+<nav>
+<ul>
+  <li><a href="Pedidos.html">Pedidos</a></li>
+  <li><a href="Usuarios Registrados.html">Usuarios Registrados</a></li>
+  <li><a href="Horario.html">Horario</a></li>
+</ul>
+</nav>
+
+<main>
+<section>
+  <h2>Editar precios y stock de productos</h2>
+  <div id="contenedor-productos"></div>
+
+  <h3>Agregar nuevo producto</h3>
+  <div id="form-agregar">
+    <input type="text" id="nuevo-nombre" placeholder="Nombre del producto">
+    <input type="url" id="nueva-imagen" placeholder="URL de la imagen">
+    <input type="number" id="nuevo-precio" placeholder="Precio" min="0" step="0.01">
+    <input type="number" id="nuevo-stock" placeholder="Stock" min="0">
+    <button onclick="agregarProducto()">Agregar</button>
+  </div>
+
+  <button onclick="guardarCambios()">Guardar cambios</button>
+</section>
+</main>
+
+<footer>
+© 2025 Mexibotanas Tienda de Botanas. Todos los derechos reservados.
+</footer>
+
+<script>
+// Cargar productos del almacenamiento o los iniciales
+let productos = JSON.parse(localStorage.getItem('productos')) || [
+  {id:'bonice', nombre:'Bonice', imagen:'bonice.webp', precio:0, stock:0},
+  {id:'gomitas', nombre:'Gomitas', imagen:'gomitas.png', precio:0, stock:0},
+  {id:'mazapan', nombre:'Mazapán', imagen:'mazapan.webp', precio:0, stock:0},
+  {id:'paletas', nombre:'Paletas de dulce', imagen:'paletas.webp', precio:0, stock:0},
+  {id:'refrescos', nombre:'Refrescos', imagen:'refrescos.png', precio:0, stock:0}
+];
+
+// Mostrar los productos en pantalla
+function mostrarProductos() {
+  const contenedor = document.getElementById('contenedor-productos');
+  contenedor.innerHTML = '';
+  productos.forEach((p, i) => {
+    contenedor.innerHTML += `
+      <div class="producto">
+        <img src="${p.imagen}" alt="${p.nombre}">
+        <h3>${p.nombre}</h3>
+        <p>Precio: $<input type="number" id="precio-${i}" value="${p.precio}" min="0" step="0.01"></p>
+        <p>Quedan: <input type="number" id="stock-${i}" value="${p.stock}" min="0"></p>
+        <button class="btn-borrar" onclick="borrarProducto(${i})">Eliminar</button>
+      </div>
+    `;
+  });
+}
+
+// Agregar un nuevo producto
+function agregarProducto() {
+  const nombre = document.getElementById('nuevo-nombre').value.trim();
+  const imagen = document.getElementById('nueva-imagen').value.trim();
+  const precio = parseFloat(document.getElementById('nuevo-precio').value) || 0;
+  const stock = parseInt(document.getElementById('nuevo-stock').value) || 0;
+
+  if (!nombre || !imagen) {
+    alert("Por favor, completa el nombre e imagen del producto.");
+    return;
+  }
+
+  const id = nombre.toLowerCase().replace(/\s+/g, '-');
+
+  productos.push({id, nombre, imagen, precio, stock});
+  guardarLocal();
+  mostrarProductos();
+
+  document.getElementById('nuevo-nombre').value = '';
+  document.getElementById('nueva-imagen').value = '';
+  document.getElementById('nuevo-precio').value = '';
+  document.getElementById('nuevo-stock').value = '';
+}
+
+// Borrar un producto
+function borrarProducto(index) {
+  if (confirm(`¿Seguro que deseas eliminar "${productos[index].nombre}"?`)) {
+    productos.splice(index, 1);
+    guardarLocal();
+    mostrarProductos();
+  }
+}
+
+// Guardar los cambios de precio y stock
+function guardarCambios() {
+  productos.forEach((p, i) => {
+    p.precio = parseFloat(document.getElementById('precio-' + i).value);
+    p.stock = parseInt(document.getElementById('stock-' + i).value);
+  });
+  guardarLocal();
+  alert("Precios y stock actualizados correctamente.");
+  if (window.opener && !window.opener.closed) {
+    window.opener.location.reload();
+  }
+}
+
+// Guardar productos en localStorage
+function guardarLocal() {
+  localStorage.setItem('productos', JSON.stringify(productos));
+}
+
+// Iniciar al cargar
+mostrarProductos();
+</script>
+
+</body>
+</html>
