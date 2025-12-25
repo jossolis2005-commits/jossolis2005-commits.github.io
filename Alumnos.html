@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Alumnos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: white;
+      margin: 0;
+      padding: 0;
+      padding-bottom: 80px;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      font-size: 2em;
+      font-weight: bold;
+      color: white;
+      background: #27ae60;
+    }
+    nav {
+      text-align: center;
+      background: #1e8449;
+      padding: 10px;
+      margin-bottom: 30px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      color: yellow;
+    }
+    .buscador {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .buscador input, .buscador button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    .buscador input {
+      background: yellow;
+      width: 220px;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      cursor: pointer;
+      padding: 8px 12px;
+    }
+    button:hover {
+      background: yellow;
+      color: black;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #27ae60;
+      color: white;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 30px;
+      color: #27ae60;
+    }
+    footer {
+      text-align: center;
+      background: #145a32;
+      color: white;
+      padding: 15px;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>Alumnos</header>
+
+<nav>
+  <a href="Alumnos.html">Inicio</a>
+  <a href="EditarAlumnos.html">Editar Datos</a>
+  <a href="Consulta.html">Volver a Consulta</a>
+
+</nav>
+
+<div class="buscador">
+  <input type="text" id="buscarRegistro" placeholder="Buscar por No. Registro">
+  <input type="text" id="buscarNombre" placeholder="Buscar por Nombre">
+  <button onclick="buscar()">Buscar</button>
+  <button onclick="cargarAlumnos()">Mostrar Todo</button>
+</div>
+
+<div id="contenedorTablas"></div>
+
+<footer>
+  Escuela Primaria "Octavio Paz"
+</footer>
+
+<script>
+function cargarAlumnos(filtros = {}) {
+  const alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  const maestros = JSON.parse(localStorage.getItem("maestros")) || {}; // ← NUEVO
+  const contenedor = document.getElementById("contenedorTablas");
+  contenedor.innerHTML = "";
+
+  let alumnosFiltrados = alumnos.filter(a => {
+    return (!filtros.id || a.id == filtros.id) &&
+           (!filtros.nombre || a.nombre.toLowerCase().includes(filtros.nombre.toLowerCase()));
+  });
+
+  const grupos = {};
+  alumnosFiltrados.forEach(a => {
+    if (!grupos[a.gradoGrupo]) grupos[a.gradoGrupo] = [];
+    grupos[a.gradoGrupo].push(a);
+  });
+
+  for (let grupo in grupos) {
+    let maestroGrupo = maestros[grupo] || "No asignado"; // ← NUEVO
+
+    let titulo = document.createElement("h2");
+    titulo.textContent = "Grupo " + grupo + " – Maestro: " + maestroGrupo; // ← MODIFICADO
+    contenedor.appendChild(titulo);
+
+    let tabla = document.createElement("table");
+    tabla.innerHTML = `
+      <tr>
+        <th>No. Registro</th>
+        <th>Nombre(s)</th>
+        <th>Apellido Paterno</th>
+        <th>Apellido Materno</th>
+        <th>Fortaleza(s)</th>
+        <th>Oportunidades</th>
+        <th>Áreas a mejorar</th>
+        <th>Comportamiento</th>
+      </tr>
+    `;
+
+    grupos[grupo].forEach(a => {
+      let fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${a.id}</td>
+        <td>${a.nombre}</td>
+        <td>${a.paterno}</td>
+        <td>${a.materno}</td>
+        <td>${a.fortalezas}</td>
+        <td>${a.oportunidades}</td>
+        <td>${a.areas}</td>
+        <td>${a.comportamiento}</td>
+      `;
+      tabla.appendChild(fila);
+    });
+
+    contenedor.appendChild(tabla);
+  }
+}
+
+function buscar() {
+  const filtros = {
+    id: document.getElementById("buscarRegistro").value,
+    nombre: document.getElementById("buscarNombre").value
+  };
+  cargarAlumnos(filtros);
+}
+
+window.onload = cargarAlumnos;
+</script>
+
+</body>
+</html>

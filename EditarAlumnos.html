@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Datos de Alumnos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: white;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #27ae60;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 2em;
+      font-weight: bold;
+    }
+    nav {
+      text-align: center;
+      background: #1e8449;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      color: yellow;
+    }
+    .login {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .editor {
+      display: none;
+      text-align: center;
+      margin: 20px;
+    }
+    input, textarea, select {
+      margin: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 250px;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: yellow;
+      color: black;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #27ae60;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>Editar Datos de Alumnos</header>
+
+  <nav>
+    <a href="Alumnos.html">Inicio</a>
+    <a href="EditarAlumnos.html">Editar Datos</a>
+  </nav>
+
+  <div class="login">
+    <h3>Ingrese la contraseña de administrador:</h3>
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="verificar()">Entrar</button>
+  </div>
+
+  <div class="editor" id="editor">
+    <h2>Editar Campos del Alumno</h2>
+    <input type="text" id="id" placeholder="No. Registro"><br>
+    <textarea id="fortalezas" placeholder="Fortaleza(s)"></textarea><br>
+    <textarea id="oportunidades" placeholder="Oportunidades"></textarea><br>
+    <textarea id="areas" placeholder="Áreas a mejorar"></textarea><br>
+    <textarea id="comportamiento" placeholder="Comportamiento"></textarea><br>
+    <button onclick="guardarCambios()">Guardar Cambios</button>
+  </div>
+
+  <script>
+    function verificar() {
+      const pass = document.getElementById("password").value;
+      if (pass === "admin123") {
+        document.querySelector(".login").style.display = "none";
+        document.getElementById("editor").style.display = "block";
+      } else {
+        alert("Contraseña incorrecta");
+      }
+    }
+
+    function guardarCambios() {
+      const id = document.getElementById("id").value.trim();
+      const fortalezas = document.getElementById("fortalezas").value.trim();
+      const oportunidades = document.getElementById("oportunidades").value.trim();
+      const areas = document.getElementById("areas").value.trim();
+      const comportamiento = document.getElementById("comportamiento").value.trim();
+
+      if (!id) {
+        alert("Debe ingresar el No. de Registro del alumno");
+        return;
+      }
+
+      let alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+      let alumno = alumnos.find(a => a.id == id);
+
+      if (alumno) {
+        alumno.fortalezas = fortalezas || alumno.fortalezas;
+        alumno.oportunidades = oportunidades || alumno.oportunidades;
+        alumno.areas = areas || alumno.areas;
+        alumno.comportamiento = comportamiento || alumno.comportamiento;
+
+        localStorage.setItem("alumnos", JSON.stringify(alumnos));
+        alert("Datos actualizados correctamente");
+      } else {
+        alert("No se encontró un alumno con ese No. de Registro");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta de Alumno</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: white;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      font-size: 2em;
+      font-weight: bold;
+      color: white;
+      background: #27ae60;
+    }
+    nav {
+      text-align: center;
+      background: #1e8449;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    nav a:hover {
+      color: yellow;
+    }
+    .buscador {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .buscador input, .buscador button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    .buscador input {
+      background: rgb(255, 255, 123);
+      width: 260px;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      cursor: pointer;
+      padding: 8px 12px;
+    }
+    button:hover {
+      background: yellow;
+      color: black;
+    }
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #27ae60;
+      color: white;
+    }
+    #resultado {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 1.3em;
+      color: #c0392b;
+      font-weight: bold;
+    }
+    footer {
+      text-align: center;
+      background: #145a32;
+      color: white;
+      padding: 15px;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>Consulta de Alumno</header>
+
+<!-- AGREGADO: Pestaña -->
+<nav>
+  <a onclick="irAlumnos()">Alumnos</a>
+</nav>
+
+<div class="buscador">
+  <input type="text" id="registro" placeholder="No. de Registro">
+  <input type="text" id="nombreCompleto" placeholder="Nombre Completo del Alumno">
+  <button onclick="consultar()">Buscar</button>
+</div>
+
+<div id="resultado"></div>
+<div id="tablaDatos"></div>
+
+<footer>
+  Escuela Primaria "Octavio Paz"
+</footer>
+
+<script>
+function consultar() {
+  const registro = document.getElementById("registro").value.trim();
+  const nombreCompleto = document.getElementById("nombreCompleto").value.trim().toLowerCase();
+
+  const alumnos = JSON.parse(localStorage.getItem("alumnos")) || [];
+  const maestros = JSON.parse(localStorage.getItem("maestros")) || {};
+
+  const alumno = alumnos.find(a =>
+    a.id == registro &&
+    (`${a.nombre} ${a.paterno} ${a.materno}`.toLowerCase().trim() === nombreCompleto)
+  );
+
+  const resultado = document.getElementById("resultado");
+  const tabla = document.getElementById("tablaDatos");
+
+  tabla.innerHTML = "";
+  resultado.innerHTML = "";
+
+  if (!alumno) {
+    resultado.textContent = "❌ No se encontró ningún alumno con esos datos.";
+    return;
+  }
+
+  let maestroCompleto = maestros[alumno.gradoGrupo] || "No asignado";
+  let primerNombreMaestro = maestroCompleto.split(" ")[0];
+
+  resultado.textContent = "Alumno encontrado:";
+
+  tabla.innerHTML = `
+    <table>
+      <tr>
+        <th>No. Registro</th>
+        <th>Nombre(s)</th>
+        <th>Apellido Paterno</th>
+        <th>Apellido Materno</th>
+        <th>Fortaleza(s)</th>
+        <th>Oportunidades</th>
+        <th>Áreas a mejorar</th>
+        <th>Comportamiento</th>
+        <th>Grupo</th>
+        <th>Maestro</th>
+      </tr>
+      <tr>
+        <td>${alumno.id}</td>
+        <td>${alumno.nombre}</td>
+        <td>${alumno.paterno}</td>
+        <td>${alumno.materno}</td>
+        <td>${alumno.fortalezas}</td>
+        <td>${alumno.oportunidades}</td>
+        <td>${alumno.areas}</td>
+        <td>${alumno.comportamiento}</td>
+        <td>${alumno.gradoGrupo}</td>
+        <td>${primerNombreMaestro}</td>
+      </tr>
+    </table>
+  `;
+}
+
+/* AGREGADO: contraseña antes de ir a Alumnos.html */
+function irAlumnos() {
+  const pass = prompt("Ingrese la contraseña:");
+  if (pass === "oct2025") {
+    window.location.href = "Alumnos.html";
+  } else {
+    alert("❌ Contraseña incorrecta");
+  }
+}
+</script>
+
+</body>
+</html>
